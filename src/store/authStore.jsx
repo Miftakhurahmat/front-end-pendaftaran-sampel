@@ -2,55 +2,46 @@ import { create } from "zustand";
 import api from "../api";
 
 const useAuthStore = create((set) => ({
-  username: null,
-  token: null,
-  role: null,
-  firstName: null,
-  lastName: null,
+  name: null,
   email: null,
-  role: null,
-  gender: null,
-  phone: null,
-  id: null,
-  dataWaitingOrders: [],
-  dataProcessOrders: [],
+  token: null,
   register: async (userData) => {
     try {
       const response = await api.post("/register", userData);
-      set({ user: response.data.user, token: response.data.access_token });
+      set({ token: response.data.access_token });
+      console.log(response.data);
       return response.data;
     } catch (error) {
-      // if (error.response) {
-      //   // Error dari server (status code bukan 2xx)
-      //   console.log('registration failed:', error.response.data);
-      // } else if (error.request) {
-      //   // Tidak ada respon dari server
-      //   console.log('No Response from Server');
-      // } else {
-      //   // Error lainnya
-      //   console.log('Error:', error.message);
-      // }
+      if (error.response) {
+        // Error dari server (status code bukan 2xx)
+        console.log("registration failed:", error.response.data);
+      } else if (error.request) {
+        // Tidak ada respon dari server
+        console.log("No Response from Server");
+      } else {
+        // Error lainnya
+        console.log("Error:", error.message);
+      }
       throw error;
     }
   },
-  login: async (email, password) => {
+  login: async (userData) => {
     try {
-      const response = await api.post("/login", { email, password });
-      set({ token: response.data.access_token });
-      await useAuthStore.getState().getMe();
-      await useAuthStore.getState().fetchDataOrders();
-      AsyncStorage.setItem("token", response.data.access_token);
+      const response = await api.post("/login", userData);
+      set({ token: response.data.data.token, name: response.data.data.name });
+      console.log("response authStore", response.data.data);
+      sessionStorage.setItem("token", response.data.token);
     } catch (error) {
-      // if (error.response) {
-      //   // Error dari server (status code bukan 2xx)
-      //   console.log('Server Error:', error.response.data);
-      // } else if (error.request) {
-      //   // Tidak ada respon dari server
-      //   console.log('No Response from Server');
-      // } else {
-      //   // Error lainnya
-      //   console.log('Error:', error.message);
-      // }
+      if (error.response) {
+        // Error dari server (status code bukan 2xx)
+        console.log("Server Error:", error.response.data);
+      } else if (error.request) {
+        // Tidak ada respon dari server
+        console.log("No Response from Server");
+      } else {
+        // Error lainnya
+        console.log("Error:", error.message);
+      }
       throw error;
     }
   },

@@ -1,8 +1,64 @@
-import React from "react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import useAuthStore from "../store/authStore";
 import imageUrl from "../images/Login.png";
 import imageBackgroundLoginUrl from "../images/background.svg";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const loginUser = useAuthStore((state) => state.login);
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const schema = yup.object().shape({
+    email: yup
+      .string()
+      .email("Email harus sesuai dengan format")
+      .required("Email wajib diisi"),
+    password: yup.string().required("Kata sandi wajib diisi"),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  const onSubmitHandler = async () => {
+    try {
+      const userData = {
+        email: formData.email,
+        password: formData.password,
+      };
+      await loginUser(userData);
+      navigate("/Home");
+      // console.log(userData);
+      // console.log("Login successful");
+      reset();
+    } catch (error) {
+      // const { data } = error.response;
+      // const keys = Object.keys(data);
+      // console.log("Registration failed", error.response.data[keys[0]][0]);
+      // setErrorMessage(error.response.data[keys[0]][0]);
+      console.log("Login Error:", error);
+    }
+  };
   return (
     <div>
       <div className="min-h-screen bg-gray-100 text-gray-900 flex justify-center">
@@ -20,31 +76,56 @@ const Login = () => {
                 </div>
 
                 <div className="mx-auto max-w-xs">
-                  <input
-                    className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-green-400 focus:bg-white"
-                    type="email"
-                    placeholder="Email"
-                  />
-                  <input
-                    className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-green-400 focus:bg-white mt-5"
-                    type="password"
-                    placeholder="Password"
-                  />
-                  <button className="mt-5 tracking-wide font-semibold bg-green-400 text-white-500 w-full py-4 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
-                    <svg
-                      className="w-6 h-6 -ml-2"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  <form onSubmit={handleSubmit(onSubmitHandler)}>
+                    <div className="mt-4">
+                      <label className="block font-semibold" htmlFor="email">
+                        Email
+                      </label>
+                      <input
+                        className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-green-400 focus:bg-white"
+                        {...register("email")}
+                        id="email"
+                        type="email"
+                        name="email"
+                        value={formData.email || ""}
+                        onChange={handleChange}
+                      />
+                      <p>{errors.email?.message}</p>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block font-semibold" htmlFor="password">
+                        Password
+                      </label>
+                      <input
+                        className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-green-400 focus:bg-white"
+                        {...register("password")}
+                        id="password"
+                        type="password"
+                        name="password"
+                        value={formData.password || ""}
+                        onChange={handleChange}
+                      />
+                      <p>{errors.password?.message}</p>
+                    </div>
+                    <button
+                      type="submit"
+                      className="mt-5 tracking-wide font-semibold bg-green-400 text-white-500 w-full py-4 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none"
                     >
-                      <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                      <circle cx="8.5" cy="7" r="4" />
-                      <path d="M20 8v6M23 11h-6" />
-                    </svg>
-                    <span className="ml-">Sign In</span>
-                  </button>
+                      <svg
+                        className="w-6 h-6 -ml-2"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <path d="M20 8v6M23 11h-6" />
+                      </svg>
+                      <span className="ml-">Sign In</span>
+                    </button>
+                  </form>
                   <div className="mt-6 text-center text-sm text-slate-600">
                     Don't have an account? &nbsp;
                     <a
